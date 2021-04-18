@@ -17,7 +17,7 @@ pipeline {
         stage('checkout') {
             steps {
                 echo 'checkout'
-                git credentialsId: 'git-creds', url: 'https://github.com/aparnadevops/gradle-jacoco-report-coverage-example.git'
+                git credentialsId: 'git-creds', url: 'https://github.com/sivakit/gradle-jacoco-report-coverage-example.git'
             }
         }
         stage(' Compile microservice') {
@@ -136,6 +136,45 @@ pipeline {
                 }
             }
         }
+            /*    
+        stage('Sonarqube') {
+    environment {
+        scannerHome = tool 'sonarQubeScanner'
+    }
+    steps {
+        withSonarQubeEnv('sonarqube') {
+            sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=gradle-pipeline -Dsonar.java.binaries=build/classes/main/"
+        }
+        timeout(time: 10, unit: 'MINUTES') {
+            waitForQualityGate abortPipeline: true
+        }
+    }
+}*/
+stage('sonarqube') {
+    environment {
+        scannerHome = tool 'sonarQubeScanner'
+    }
+        steps {
+	withSonarQubeEnv('sonarqube') { // Will pick the global server connection you have configured    
+	sh """                            
+	${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion="sonarTag" -Dsonar.projectKey="aprana-postcommit" -Dsonar.sources=./ -Dsonar.java.binaries=./ -Dsonar.coverage.jacoco.xmlReportPaths="./build/reports/jacoco/jacoco.xml"
+		"""
+		}
+	}
+}
+
+stage("Quality Gate"){
+steps{
+script{
+  timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
+    def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
+    if (qg.status != 'OK') {
+      error "Pipeline aborted due to quality gate failure: ${qg.status}"
+    }
+  }
+}
+}
+}
 					
     }
 }
