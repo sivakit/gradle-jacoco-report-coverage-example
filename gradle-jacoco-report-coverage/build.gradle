@@ -1,0 +1,95 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.palantir:jacoco-coverage:0.2.1'
+
+    }
+}
+
+plugins {
+    id "org.sonarqube" version "1.1"
+}
+
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'sonar'
+group = 'com.github.jitpack'
+
+jacoco {
+        toolVersion = "0.8.5"
+}
+
+allprojects {
+apply plugin: 'maven-publish'
+ publishing {
+        repositories {
+            maven {
+                credentials {
+                    username System.getenv()['nexusUser']
+                    password System.getenv()['nexusPassword']
+                }
+                url "http://192.168.0.12:8081/nexus/repository/Gradle_repo/"
+            }
+        }
+    }
+    publishing {
+        publications {
+            publishMFAgentCorePackageZip(MavenPublication) {
+                artifact {
+                    "build/libs/gradle-pipeline.jar"
+                }
+                groupId "aparna.test.gradle"
+                artifactId "gradle-pipeline"
+                version "1.0.0"
+            }
+        }
+      } 
+}
+
+sourceCompatibility = 1.8 // java 8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.guava:guava:18.0'
+    testCompile 'junit:junit:4.4'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        xml.destination "${buildDir}/reports/jacoco.xml"
+        csv.enabled false
+        html.destination "${buildDir}/reports/jacoco-html"
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectName", "gradle-jacoco-report-coverage-example"
+        property "sonar.projectKey", "gradle-jacoco-report-coverage-example"
+        property "sonar.java.source", "1.6"
+        property "sonar.java.target", "1.6"
+    }
+}

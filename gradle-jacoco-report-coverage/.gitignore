@@ -1,0 +1,9 @@
+*.class
+build/
+.gradle
+
+*.jar
+*.aar
+*.war
+.idea/
+gradle-simple.iml
