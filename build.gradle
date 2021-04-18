@@ -30,7 +30,7 @@ apply plugin: 'maven-publish'
                     username System.getenv()['nexusUser']
                     password System.getenv()['nexusPassword']
                 }
-                url "http://192.168.0.12:8081/nexus/repository/Gradle_repo/"
+                url "http://ip172-18-0-34-c1u1core75e000ff9l2g-8081.direct.labs.play-with-docker.com/repository/Gradle_repo/"
             }
         }
     }
